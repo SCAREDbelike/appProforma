@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "com.jijijija.appproforma"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.jijijija.appproforma"
-        minSdk = 28
-        targetSdk = 34
+        minSdk = 24
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
