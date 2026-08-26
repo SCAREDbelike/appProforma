@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Colores base -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Paleta de azules -->
+    <color name="blue_200">#FF90CAF9</color>
+    <color name="blue_500">#FF2196F3</color>
+    <color name="blue_700">#FF1976D2</color>
+    <color name="blue_900">#FF0D47A1</color>
+
+    <!-- Azul oscuro para modo noche -->
+    <color name="dark_blue_900">#FF0A2A4A</color>
+
+    <!-- Colores de fondo -->
+    <color name="background">#FFFFFFFF</color>
+    <color name="background_dark">#FF121212</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="surface_dark">#FF1E1E1E</color>
+    <color name="on_background">#FF000000</color>
+    <color name="on_background_dark">#FFFFFFFF</color>
+    <color name="on_surface">#FF000000</color>
+    <color name="on_surface_dark">#FFFFFFFF</color>
+
+    <!-- Colores de estado -->
+    <color name="error">#FFB3261E</color>
+    <color name="on_error">#FFFFFFFF</color>
 </resources>
