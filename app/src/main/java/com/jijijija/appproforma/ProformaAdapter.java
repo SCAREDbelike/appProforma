@@ -67,4 +67,3 @@ public class ProformaAdapter extends RecyclerView.Adapter<ProformaAdapter.ViewHo
             tvTotalItem = itemView.findViewById(R.id.tvTotalItem);
         }
     }
-}
