@@ -3,9 +3,7 @@ package com.jijijija.appproforma;
 import android.os.Bundle;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -26,8 +24,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Desactiva el modo oscuro para evitar cajas oscuras o texto ilegible
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+
+        // Carga tu diseño de la proforma
         setContentView(R.layout.activity_main);
 
         // Inicio Programacion
