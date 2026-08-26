@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import java.util.Locale;
 
+public class ProformaAdapter extends RecyclerView.Adapter<ProformaAdapter.ProformaViewHolder> {
 public class ProformaAdapter extends RecyclerView.Adapter<ProformaAdapter.ViewHolder> {
 
     public interface OnItemClickListener {
@@ -27,6 +28,30 @@ public class ProformaAdapter extends RecyclerView.Adapter<ProformaAdapter.ViewHo
 
     @NonNull
     @Override
+    public ProformaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_proforma_registro, parent, false);
+        return new ProformaViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ProformaViewHolder holder, int position) {
+        ProformaItem item = lista.get(position);
+
+        holder.tvProductoNombre.setText(item.getProducto());
+        holder.tvDetalleSecundario.setText(String.format(
+                Locale.US,
+                "Cód: %s  ·  S/. %.2f  x  %d",
+                item.getCodigo(),
+                item.getPrecio(),
+                item.getCantidad()
+        ));
+        holder.tvTotalItem.setText(String.format(Locale.US, "S/. %.2f", item.getTotal()));
+
+        holder.itemView.setOnClickListener(v -> {
+            int adapterPosition = holder.getAdapterPosition();
+            if (adapterPosition != RecyclerView.NO_POSITION && listener != null) {
+                listener.onItemClick(adapterPosition);
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View vista = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_proforma_registro, parent, false);
@@ -57,6 +82,12 @@ public class ProformaAdapter extends RecyclerView.Adapter<ProformaAdapter.ViewHo
         return lista.size();
     }
 
+    static class ProformaViewHolder extends RecyclerView.ViewHolder {
+        final TextView tvProductoNombre;
+        final TextView tvDetalleSecundario;
+        final TextView tvTotalItem;
+
+        ProformaViewHolder(@NonNull View itemView) {
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvProductoNombre, tvDetalleSecundario, tvTotalItem;
 
@@ -67,3 +98,4 @@ public class ProformaAdapter extends RecyclerView.Adapter<ProformaAdapter.ViewHo
             tvTotalItem = itemView.findViewById(R.id.tvTotalItem);
         }
     }
+}

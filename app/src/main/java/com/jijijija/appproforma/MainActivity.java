@@ -1,6 +1,18 @@
 package com.jijijija.appproforma;
 
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.textfield.TextInputEditText;
+
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -21,6 +33,9 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     private TextInputEditText etCodigo, etProducto, etPrecio, etCantidad;
+    private Button btnNuevo, btnGrabar, btnActualizar, btnEliminar;
+    private TextView tvTotal;
+    private RecyclerView rvRegistros;
     private TextView tvTotal;
     private Button btnNuevo, btnGrabar, btnActualizar, btnEliminar;
 
@@ -30,25 +45,67 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Desactiva el modo oscuro para evitar cajas oscuras o texto ilegible
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
         super.onCreate(savedInstanceState);
-
-        // Carga tu diseño de la proforma
         setContentView(R.layout.activity_main);
 
+        enlazarVistas();
+        configurarLista();
+        configurarBotones();
+        actualizarTotalAcumulado();
+    }
+
+    private void enlazarVistas() {
         // Inicio Programacion
         etCodigo = findViewById(R.id.etCodigo);
         etProducto = findViewById(R.id.etProducto);
         etPrecio = findViewById(R.id.etPrecio);
         etCantidad = findViewById(R.id.etCantidad);
+
+        tvTotal = findViewById(R.id.tvTotal);
+
         tvTotal = findViewById(R.id.tvTotal);
         btnNuevo = findViewById(R.id.btnNuevo);
         btnGrabar = findViewById(R.id.btnGrabar);
         btnActualizar = findViewById(R.id.btnActualizar);
         btnEliminar = findViewById(R.id.btnEliminar);
 
+        rvRegistros = findViewById(R.id.rvRegistros);
+    }
+
+    private void configurarLista() {
+
+        adaptador = new ProformaAdapter(lista, position -> {
+
+            posicionSeleccionada = position;
+
+            ProformaItem item = lista.get(position);
+
+            etCodigo.setText(item.getCodigo());
+            etProducto.setText(item.getProducto());
+
+            etPrecio.setText(
+                    String.format(Locale.US, "%.2f", item.getPrecio())
+            );
+
+            etCantidad.setText(
+                    String.valueOf(item.getCantidad())
+            );
+        });
+
+        rvRegistros.setLayoutManager(
+                new LinearLayoutManager(this)
+        );
+
+        rvRegistros.setAdapter(adaptador);
+    }
+
+    private void configurarBotones() {
+
+        // BOTÓN NUEVO
+        btnNuevo.setOnClickListener(v -> {
+            limpiarCampos();
+        });
         androidx.recyclerview.widget.RecyclerView rvRegistros = findViewById(R.id.rvRegistros);
         rvRegistros.setLayoutManager(new LinearLayoutManager(this));
         adaptador = new ProformaAdapter(lista, this::seleccionarItem);
@@ -57,8 +114,24 @@ public class MainActivity extends AppCompatActivity {
         // Nuevo
         btnNuevo.setOnClickListener(v -> limpiarCampos());
 
-        // Grabar
+
+        // BOTÓN GRABAR
         btnGrabar.setOnClickListener(v -> {
+
+            ProformaItem nuevoItem = leerFormulario();
+
+            if (nuevoItem == null) {
+                return;
+            }
+
+            lista.add(nuevoItem);
+
+            adaptador.notifyItemInserted(
+                    lista.size() - 1
+            );
+
+            actualizarTotalAcumulado();
+
             if (!validarCampos()) return;
 
             String codigo = etCodigo.getText().toString().trim();
@@ -70,8 +143,68 @@ public class MainActivity extends AppCompatActivity {
             adaptador.notifyItemInserted(lista.size() - 1);
             actualizarTotal();
             limpiarCampos();
+
+            Toast.makeText(
+                    this,
+                    "Producto agregado",
+                    Toast.LENGTH_SHORT
+            ).show();
         });
 
+
+        // BOTÓN ACTUALIZAR
+        btnActualizar.setOnClickListener(v -> {
+
+            if (posicionSeleccionada < 0 ||
+                    posicionSeleccionada >= lista.size()) {
+
+                Toast.makeText(
+                        this,
+                        "Selecciona un producto de la lista",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                return;
+            }
+
+            ProformaItem datosActualizados = leerFormulario();
+
+            if (datosActualizados == null) {
+                return;
+            }
+
+            ProformaItem item =
+                    lista.get(posicionSeleccionada);
+
+            item.setCodigo(
+                    datosActualizados.getCodigo()
+            );
+
+            item.setProducto(
+                    datosActualizados.getProducto()
+            );
+
+            item.setPrecio(
+                    datosActualizados.getPrecio()
+            );
+
+            item.setCantidad(
+                    datosActualizados.getCantidad()
+            );
+
+            adaptador.notifyItemChanged(
+                    posicionSeleccionada
+            );
+
+            actualizarTotalAcumulado();
+
+            limpiarCampos();
+
+            Toast.makeText(
+                    this,
+                    "Producto actualizado",
+                    Toast.LENGTH_SHORT
+            ).show();
         // Actualizar
         btnActualizar.setOnClickListener(v -> {
             if (posicionSeleccionada == -1) {
@@ -91,8 +224,21 @@ public class MainActivity extends AppCompatActivity {
             limpiarCampos();
         });
 
-        // Eliminar
+
+        // BOTÓN ELIMINAR
         btnEliminar.setOnClickListener(v -> {
+
+            if (posicionSeleccionada < 0 ||
+                    posicionSeleccionada >= lista.size()) {
+
+                Toast.makeText(
+                        this,
+                        "Selecciona un producto de la lista",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                return;
+            }
             if (posicionSeleccionada == -1) {
                 Toast.makeText(this, "Selecciona un producto de la lista", Toast.LENGTH_SHORT).show();
                 return;
@@ -104,12 +250,214 @@ public class MainActivity extends AppCompatActivity {
         });
         // Fin Programacion
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+            int posicionEliminada =
+                    posicionSeleccionada;
+
+            lista.remove(posicionEliminada);
+
+            adaptador.notifyItemRemoved(
+                    posicionEliminada
+            );
+
+            actualizarTotalAcumulado();
+
+            limpiarCampos();
+
+            Toast.makeText(
+                    this,
+                    "Producto eliminado",
+                    Toast.LENGTH_SHORT
+            ).show();
         });
     }
+
+
+    private ProformaItem leerFormulario() {
+
+        String codigo =
+                obtenerTexto(etCodigo);
+
+        String producto =
+                obtenerTexto(etProducto);
+
+        String precioTexto =
+                obtenerTexto(etPrecio);
+
+        String cantidadTexto =
+                obtenerTexto(etCantidad);
+
+
+        // VALIDAR CÓDIGO VACÍO
+        if (TextUtils.isEmpty(codigo)) {
+
+            etCodigo.setError(
+                    "Ingresa el código"
+            );
+
+            etCodigo.requestFocus();
+
+            return null;
+        }
+
+
+        // CÓDIGO DEBE TENER EXACTAMENTE 6 CARACTERES
+        if (codigo.length() != 6) {
+
+            etCodigo.setError(
+                    "El código debe tener exactamente 6 caracteres"
+            );
+
+            etCodigo.requestFocus();
+
+            return null;
+        }
+
+
+        // VALIDAR PRODUCTO VACÍO
+        if (TextUtils.isEmpty(producto)) {
+
+            etProducto.setError(
+                    "Ingresa el producto"
+            );
+
+            etProducto.requestFocus();
+
+            return null;
+        }
+
+
+        // PRODUCTO MÁXIMO 40 CARACTERES
+        if (producto.length() > 40) {
+
+            etProducto.setError(
+                    "El producto debe tener máximo 40 caracteres"
+            );
+
+            etProducto.requestFocus();
+
+            return null;
+        }
+
+
+        // VALIDAR PRECIO VACÍO
+        if (TextUtils.isEmpty(precioTexto)) {
+
+            etPrecio.setError(
+                    "Ingresa el precio"
+            );
+
+            etPrecio.requestFocus();
+
+            return null;
+        }
+
+
+        // VALIDAR CANTIDAD VACÍA
+        if (TextUtils.isEmpty(cantidadTexto)) {
+
+            etCantidad.setError(
+                    "Ingresa la cantidad"
+            );
+
+            etCantidad.requestFocus();
+
+            return null;
+        }
+
+
+        try {
+
+            double precio =
+                    Double.parseDouble(
+                            precioTexto.replace(',', '.')
+                    );
+
+            int cantidad =
+                    Integer.parseInt(
+                            cantidadTexto
+                    );
+
+
+            // PRECIO NO PUEDE SER NEGATIVO
+            if (precio < 0) {
+
+                etPrecio.setError(
+                        "El precio no puede ser negativo"
+                );
+
+                etPrecio.requestFocus();
+
+                return null;
+            }
+
+
+            // CANTIDAD MAYOR QUE CERO
+            if (cantidad <= 0) {
+
+                etCantidad.setError(
+                        "La cantidad debe ser mayor que 0"
+                );
+
+                etCantidad.requestFocus();
+
+                return null;
+            }
+
+
+            return new ProformaItem(
+                    codigo,
+                    producto,
+                    precio,
+                    cantidad
+            );
+
+        } catch (NumberFormatException e) {
+
+            Toast.makeText(
+                    this,
+                    "Revisa el precio y la cantidad",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return null;
+        }
+    }
+
+
+    private String obtenerTexto(
+            TextInputEditText campo
+    ) {
+
+        if (campo.getText() == null) {
+            return "";
+        }
+
+        return campo.getText()
+                .toString()
+                .trim();
+    }
+
+
+    private void actualizarTotalAcumulado() {
+
+        double total = 0.0;
+
+        for (ProformaItem item : lista) {
+
+            total += item.getTotal();
+        }
+
+        tvTotal.setText(
+                String.format(
+                        Locale.US,
+                        "Total: S/. %.2f",
+                        total
+                )
+        );
+    }
+
+
+    private void limpiarCampos() {
 
     // Se llama al tocar un ítem de la lista (RecyclerView)
     private void seleccionarItem(int position) {
@@ -153,8 +501,10 @@ public class MainActivity extends AppCompatActivity {
         etProducto.setText("");
         etPrecio.setText("");
         etCantidad.setText("");
+
+        posicionSeleccionada = -1;
+
         posicionSeleccionada = -1;
         etCodigo.requestFocus();
     }
-    // Fin Implementacion
 }
